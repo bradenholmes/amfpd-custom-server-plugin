@@ -48,7 +48,7 @@ public class MySqlClient
 		return connection.createStatement().executeQuery(sql_query);
 	}
 	
-	public void insertPerson(String minecraftName, String discordId, String discordName) {
+	public void insertPerson(String minecraftName, String discordId, String discordName, boolean whitelisted) {
 		StringBuilder queryBuilder = new StringBuilder();
 
 		StringBuilder columns = new StringBuilder();
@@ -78,6 +78,13 @@ public class MySqlClient
 			values.append("'" + discordName + "'");
 		}
 		
+		if (needComma) {
+			columns.append(", ");
+			values.append(", ");
+		}
+		columns.append("whitelisted");
+		values.append(whitelisted);
+		
 		queryBuilder.append("INSERT INTO People (" + columns.toString() + ") VALUES (" + values.toString() + ")");
 		
 		try {
@@ -87,7 +94,7 @@ public class MySqlClient
 		}
 	}
 	
-	public void updatePerson(int primaryId, String minecraftName, String discordId, String discordName) {
+	public void updatePerson(int primaryId, String minecraftName, String discordId, String discordName, boolean whitelisted) {
 		StringBuilder queryBuilder = new StringBuilder();
 
 		queryBuilder.append("UPDATE People SET ");
@@ -109,7 +116,13 @@ public class MySqlClient
 				queryBuilder.append(", ");
 			}
 			queryBuilder.append("discord_name='" + discordName + "'");
+			needComma = true;
 		}
+		
+		if (needComma) {
+			queryBuilder.append(", ");
+		}
+		queryBuilder.append("whitelisted=" + whitelisted);
 		
 		queryBuilder.append(" WHERE id=" + primaryId);
 		
@@ -121,19 +134,20 @@ public class MySqlClient
 	}
 	
 	public Person getPerson(int primaryId) throws SQLException {
-		ResultSet result = query("SELECT id, minecraft_name, discord_id, discord_name FROM People WHERE id=" + primaryId);
+		ResultSet result = query("SELECT id, minecraft_name, discord_id, discord_name, whitelisted FROM People WHERE id=" + primaryId);
 		result.first();
 		Person person = new Person();
 		person.setPrimaryId(result.getInt("id"));
 		person.setMinecraftName(result.getString("minecraft_name"));
 		person.setDiscordId(result.getLong("discord_id"));
 		person.setDiscordName(result.getString("discord_name"));
+		person.setWhitelisted(result.getBoolean("whitelisted"));
 		return person;
 	}
 	
 	public Person searchPerson(String minecraftName, String discordId, String discordName) {
 		StringBuilder queryBuilder = new StringBuilder();
-		queryBuilder.append("SELECT id, minecraft_name, discord_id, discord_name FROM People WHERE ");
+		queryBuilder.append("SELECT id, minecraft_name, discord_id, discord_name, whitelisted FROM People WHERE ");
 		boolean needAnd = false;
 		if (!StringUtils.isEmpty(minecraftName)) {
 			queryBuilder.append("minecraft_name='" + minecraftName + "'");
@@ -161,6 +175,7 @@ public class MySqlClient
 				person.setMinecraftName(results.getString("minecraft_name"));
 				person.setDiscordId(results.getLong("discord_id"));
 				person.setDiscordName(results.getString("discord_name"));
+				person.setWhitelisted(results.getBoolean("whitelisted"));
 				return person;
 			} else {
 				return null;
@@ -176,6 +191,7 @@ public class MySqlClient
 		
 		if (caller == null) {
 			DiscordWhitelister.getPluginLogger().log(Level.SEVERE, "Unidentified user attempted to change the whitelist");
+			return;
 		}
 		
 		WhitelistEvent event = new WhitelistEvent();
@@ -187,7 +203,12 @@ public class MySqlClient
 		} else {
 			Person subject = searchPerson(subjectMcUser, "", "");
 			if (subject == null) {
-				insertPerson(subjectMcUser, "", "");
+				if ("ADD".equals(type)) {
+					insertPerson(subjectMcUser, "", "", true);
+				} else if ("REMOVE".equals(type)) {
+					insertPerson(subjectMcUser, "", "", false);
+				}
+				
 				subject = searchPerson(subjectMcUser, "", "");
 				if (subject == null) {
 					DiscordWhitelister.getPluginLogger().log(Level.SEVERE, "Failed to make a new Person object out of newly whitelisted mc_username");

@@ -11,6 +11,7 @@ public class Person
 	private String minecraftName;
 	private long discordId = 0;
 	private String discordName;
+	private boolean whitelisted;
 	
 	public boolean equals(Object b) {
 		if (!(b instanceof Person)) {
