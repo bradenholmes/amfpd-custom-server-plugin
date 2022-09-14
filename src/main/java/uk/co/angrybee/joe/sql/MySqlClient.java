@@ -9,6 +9,7 @@ import java.util.logging.Level;
 import org.codehaus.plexus.util.StringUtils;
 
 import uk.co.angrybee.joe.DiscordWhitelister;
+import uk.co.angrybee.joe.Utils.WhitelistEventType;
 
 public class MySqlClient
 {
@@ -185,7 +186,7 @@ public class MySqlClient
 		}
 	}
 	
-	public void logWhitelistEvent(String callerDiscordId, String type, String subjectMcUser) {
+	public void logWhitelistEvent(String callerDiscordId, WhitelistEventType type, String subjectMcUser) {
 		
 		Person caller = searchPerson("", callerDiscordId, "");
 		
@@ -196,25 +197,29 @@ public class MySqlClient
 		
 		WhitelistEvent event = new WhitelistEvent();
 		event.callerId = caller.getPrimaryId();
-		event.eventType = type;
+		event.eventType = type.toString();
 
 		if (caller.getMinecraftName().equals(subjectMcUser)) {
 			event.subjectId = caller.getPrimaryId();
 		} else {
 			Person subject = searchPerson(subjectMcUser, "", "");
 			if (subject == null) {
-				if ("ADD".equals(type)) {
-					insertPerson(subjectMcUser, "", "", true);
-				} else if ("REMOVE".equals(type)) {
-					insertPerson(subjectMcUser, "", "", false);
-				}
-				
-				subject = searchPerson(subjectMcUser, "", "");
-				if (subject == null) {
-					DiscordWhitelister.getPluginLogger().log(Level.SEVERE, "Failed to make a new Person object out of newly whitelisted mc_username");
-					return;
+				insertPerson(subjectMcUser, "", "", false);
+			}
+			
+			subject = searchPerson(subjectMcUser, "", "");
+			if (subject == null) {
+				DiscordWhitelister.getPluginLogger().log(Level.SEVERE, "Failed to make a new Person object out of newly whitelisted mc_username");
+				return;
+			} else {
+				if (type == WhitelistEventType.ADD) {
+					updatePerson(subject.getPrimaryId(), "", "", "", true);
+				} else if (type == WhitelistEventType.REMOVE) {
+					updatePerson(subject.getPrimaryId(), "", "", "", false);
 				}
 			}
+			
+			
 			event.setSubjectId(subject.getPrimaryId());
 		}
 		

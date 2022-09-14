@@ -1,6 +1,5 @@
 package uk.co.angrybee.joe;
 
-import org.bukkit.Server;
 import org.bukkit.plugin.java.JavaPlugin;
 import uk.co.angrybee.joe.commands.minecraft.CommandDiscord;
 import uk.co.angrybee.joe.commands.minecraft.CommandReload;
@@ -25,10 +24,7 @@ public class DiscordWhitelister extends JavaPlugin {
 
 
     private static JavaPlugin thisPlugin;
-    private static Server thisServer;
     private static Logger pluginLogger;
-
-
 
 
     public static int removeMessageWaitTime = 5;
@@ -39,7 +35,6 @@ public class DiscordWhitelister extends JavaPlugin {
     @Override
     public void onEnable() {
         thisPlugin = this;
-        thisServer = thisPlugin.getServer();
         pluginLogger = thisPlugin.getLogger();
 
 
@@ -84,15 +79,6 @@ public class DiscordWhitelister extends JavaPlugin {
     public static Logger getPluginLogger() {
         return pluginLogger;
     }
-
-
-
-
-
-
-
-
-
 
     static String[] getConfigArray(String path){
         List<String> list = mainConfig.getFileConfiguration().getStringList(path);
@@ -148,5 +134,11 @@ public class DiscordWhitelister extends JavaPlugin {
     public static void ConfigSetup() {
         mainConfig = new MainConfig();
         mainConfig.ConfigSetup();
+    }
+    
+    public static void ExecuteServerCommand(String command) {
+        DiscordWhitelister.getPlugin().getServer().getScheduler().callSyncMethod(DiscordWhitelister.getPlugin(), ()
+                -> DiscordWhitelister.getPlugin().getServer().dispatchCommand(
+                DiscordWhitelister.getPlugin().getServer().getConsoleSender(), command));
     }
 }

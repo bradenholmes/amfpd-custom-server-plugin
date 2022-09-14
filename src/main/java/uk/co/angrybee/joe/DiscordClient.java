@@ -1,6 +1,5 @@
 package uk.co.angrybee.joe;
 
-import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.*;
@@ -16,16 +15,11 @@ import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
-import org.json.simple.parser.ParseException;
 import uk.co.angrybee.joe.commands.discord.*;
+import uk.co.angrybee.joe.events.OnBanEvent;
 import uk.co.angrybee.joe.events.ShutdownEvents;
 
 import javax.security.auth.login.LoginException;
-import java.awt.Color;
-import java.io.*;
-import java.net.URL;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -37,23 +31,12 @@ public class DiscordClient extends ListenerAdapter {
     public static String[] allowedToAddRoles;
 
     private static String[] targetTextChannels;
-    
-    public static MessageEmbed botInfo;
-    public static MessageEmbed addCommandInfo;
-    public static MessageEmbed removeCommandInfo;
-    public static MessageEmbed whoIsInfo;
-
-
-    public static boolean usernameValidation;
-
-    public static final char[] validCharacters = {'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', 'a', 's', 'd', 'f', 'g', 'h',
-            'j', 'k', 'l', 'z', 'x', 'c', 'v', 'b', 'n', 'm', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '_'};
 
     public static JDA javaDiscordAPI;
+    private static Guild guild;
 
     public static int InitializeClient(String clientToken) {
         AssignVars();
-        BuildStrings();
 
         try {
             javaDiscordAPI = JDABuilder.createDefault(clientToken)
@@ -64,6 +47,7 @@ public class DiscordClient extends ListenerAdapter {
                     .enableIntents(GatewayIntent.GUILD_MEMBERS)
                     .setChunkingFilter(ChunkingFilter.ALL)
                     .addEventListeners(new DiscordClient())
+                    .addEventListeners(new OnBanEvent())
                     .addEventListeners(new ShutdownEvents())
                     .build();
 
@@ -85,18 +69,10 @@ public class DiscordClient extends ListenerAdapter {
                     				new SubcommandData("self", "Set your in-game Minecraft username (required)")
                     						.addOption(STRING, "minecraft_username", "Your in-game Minecraft username", true),
                     				new SubcommandData("user", "Find the in-game Minecraft username for a given Discord user")
-                    						.addOption(USER, "discord_user", "Discord user to look for", true)),
-                    		
-                    new CommandData("clearname", "Clear name from all lists")
-                            .addOption(STRING, "minecraft_username", "Minecraft username to clear", true),
-                    new CommandData("clearban", "Clear ban from user")
-                            .addOption(STRING, "minecraft_username", "Minecraft username to unban", true))
+                    						.addOption(USER, "discord_user", "Discord user to look for", true)))
                     .queue();
-
-            // Send the new set of commands to discord, this will override any existing global commands with the new set provided here
-
-
             return 0;
+            
         } catch (LoginException | InterruptedException e) {
             e.printStackTrace();
             return 1;
@@ -118,34 +94,13 @@ public class DiscordClient extends ListenerAdapter {
     private static void AssignVars() {
         FileConfiguration mainConfig = DiscordWhitelister.mainConfig.getFileConfiguration();
 
-        // assign vars here instead of every time a message is received, as they do not change
         targetTextChannels = new String[mainConfig.getList("target-text-channels").size()];
         for (int i = 0; i < targetTextChannels.length; ++i) {
             targetTextChannels[i] = mainConfig.getList("target-text-channels").get(i).toString();
         }
+        
+        guild = javaDiscordAPI.getGuildById(DiscordWhitelister.mainConfig.getFileConfiguration().getString("guild-id"));
 
-        usernameValidation = mainConfig.getBoolean("username-validation");
-
-    }
-
-    private static void BuildStrings() {
-        // build here instead of every time a message is received, as they do not change
-        EmbedBuilder embedBuilderBotInfo = new EmbedBuilder();
-        embedBuilderBotInfo.setTitle("Discord Whitelister for Spigot");
-        embedBuilderBotInfo.addField("Version", VersionInfo.getVersion(), false);
-        embedBuilderBotInfo.addField("Links", ("https://www.spigotmc.org/resources/discord-whitelister.69929/\nhttps://github.com/JoeShimell/DiscordWhitelisterSpigot"), false);
-        embedBuilderBotInfo.addField("Commands", ("**Add:** /whitelist add minecraftUsername\n**Remove:** /whitelist remove minecraftUsername"), false);
-        embedBuilderBotInfo.addField("Experiencing issues?", "If you encounter an issue, please report it here: https://github.com/JoeShimell/DiscordWhitelisterSpigot/issues", false);
-        embedBuilderBotInfo.setColor(infoColour);
-        botInfo = embedBuilderBotInfo.build();
-
-        addCommandInfo = CreateEmbeddedMessage("Whitelist Add Command",
-                "/whitelist add minecraftUsername\n\nIf you encounter any issues, please report them here: https://github.com/JoeShimell/DiscordWhitelisterSpigot/issues",
-                EmbedMessageType.INFO).build();
-
-        removeCommandInfo = CreateEmbeddedMessage("Whitelist Remove Command",
-                "/whitelist remove minecraftUsername\n\nIf you encounter any issues, please report them here: https://github.com/JoeShimell/DiscordWhitelisterSpigot/issues",
-                EmbedMessageType.INFO).build();
     }
 
     public static String getOnlineStatus() {
@@ -156,68 +111,18 @@ public class DiscordClient extends ListenerAdapter {
         }
     }
 
-    public enum EmbedMessageType {INFO, SUCCESS, FAILURE}
-
-    private static final Color infoColour = new Color(104, 109, 224);
-    private static final Color successColour = new Color(46, 204, 113);
-    private static final Color failureColour = new Color(231, 76, 60);
-
-    public static EmbedBuilder CreateEmbeddedMessage(String title, String message, EmbedMessageType messageType) {
-        EmbedBuilder newMessageEmbed = new EmbedBuilder();
-        newMessageEmbed.addField(title, message, false);
-
-        if (messageType == EmbedMessageType.INFO)
-            newMessageEmbed.setColor(infoColour);
-        else if (messageType == EmbedMessageType.SUCCESS)
-            newMessageEmbed.setColor(successColour);
-        else if (messageType == EmbedMessageType.FAILURE)
-            newMessageEmbed.setColor(failureColour);
-        else
-            newMessageEmbed.setColor(new Color(255, 255, 255));
-
-        return newMessageEmbed;
-    }
-
-
-    public static MessageEmbed CreateInsufficientPermsMessage(User messageAuthor) {
-        MessageEmbed insufficientMessageEmbed;
-
-        String customTitle = "TITLE";
-        String customMessage = "{Sender}, you've got some 'splainin to do";
-        customMessage = customMessage.replaceAll("\\{Sender}", messageAuthor.getAsMention()); // Only checking for {Sender}
-
-        insufficientMessageEmbed = CreateEmbeddedMessage(customTitle, customMessage, EmbedMessageType.FAILURE).build();
-
-        return insufficientMessageEmbed;
-    }
-
-    public static MessageEmbed CreateInstructionalMessage() {
-        MessageEmbed instructionalMessageEmbed;
-
-
-        String addCommandExample = "/whitelist add";
-
-        instructionalMessageEmbed = CreateEmbeddedMessage("How to Whitelist", ("Use `" + addCommandExample + " <minecraftUsername>` to whitelist yourself.\n" +
-                "In the case of whitelisting an incorrect name, please contact a staff member to clear it from the whitelist."), EmbedMessageType.INFO).build();
-
-
-        return instructionalMessageEmbed;
-    }
-
     @Override
     public void onSlashCommand(SlashCommandEvent event) {
 
 
-        if (event.getGuild() == null) {
-            MessageEmbed messageEmbed = CreateEmbeddedMessage("Sorry!",
-                    ("This bot can only used in AMFPD for now... contact @oddlyMetered"), EmbedMessageType.FAILURE).build();
+        if (event.getGuild().getId() != DiscordWhitelister.mainConfig.getFileConfiguration().getString("guild-id")) {
+            MessageEmbed messageEmbed = DiscordResponses.makeSimpleInfoMessage("This bot can only used in AMFPD");
             ReplyAndRemoveAfterSeconds(event, messageEmbed);
             return;
         }
 
         if (!Arrays.asList(targetTextChannels).contains(event.getTextChannel().getId())) {
-            MessageEmbed messageEmbed = CreateEmbeddedMessage("Sorry!",
-                    ("This bot can only used in #whitelist channel."), EmbedMessageType.FAILURE).build();
+            MessageEmbed messageEmbed = DiscordResponses.makeSimpleInfoMessage("This command can only used in the #whitelist channel.");
             ReplyAndRemoveAfterSeconds(event, messageEmbed);
             return;
         }
@@ -228,12 +133,10 @@ public class DiscordClient extends ListenerAdapter {
         if (mc_name_op != null) {
             mc_name = mc_name_op.getAsString();
         }
-        OptionMapping dc_name_op = event.getOption("discord_user"); // the "user" option is required so it doesn't need a null-check here
-        Member dc_name = null;
-        long dc_id = 0;
+        OptionMapping dc_name_op = event.getOption("discord_user");
+        User dc_user = null;
         if (dc_name_op != null) {
-            dc_name = dc_name_op.getAsMember();
-            dc_id = dc_name_op.getAsUser().getIdLong();
+            dc_user = dc_name_op.getAsUser();
         }
 
         switch (event.getName()) {
@@ -262,7 +165,7 @@ public class DiscordClient extends ListenerAdapter {
 	            		}
 	            		break;
 	            		case "user": {
-	            			CommandIdentifyUser.ExecuteCommand(event, dc_id);
+	            			CommandIdentifyUser.ExecuteCommand(event, dc_user);
 	            		}
 	            		break;
             		}
@@ -289,9 +192,6 @@ public class DiscordClient extends ListenerAdapter {
         if (messageReceivedEvent.getAuthor().getIdLong() == javaDiscordAPI.getSelfUser().getIdLong())
             return;
 
-
-        // TODO remove, use in command classes when complete
-        User author = messageReceivedEvent.getAuthor();
         TextChannel channel = messageReceivedEvent.getTextChannel();
 
         // if no commands are executed, delete the message, if enabled
@@ -300,76 +200,17 @@ public class DiscordClient extends ListenerAdapter {
         }
         
         //Warn user that this is for commands only
-        MessageEmbed messageEmbed = CreateEmbeddedMessage("Commands Only Channel", (author.getAsMention() + ", this channel is for commands only, please use #general to chat or #issues to report a problem"),
-                EmbedMessageType.INFO).build();
-        QueueAndRemoveAfterSeconds(channel, messageEmbed);
-
-
+        QueueAndRemoveAfterSeconds(channel, DiscordResponses.getCommandOnly());
     }
 
 
-    public static String minecraftUsernameToUUID(String minecraftUsername) {
-        URL playerURL;
-        String inputStream;
-        BufferedReader bufferedReader;
-
-        String playerUUID = null;
-
-        try {
-            playerURL = new URL("https://api.mojang.com/users/profiles/minecraft/" + minecraftUsername);
-            bufferedReader = new BufferedReader(new InputStreamReader(playerURL.openStream()));
-            inputStream = bufferedReader.readLine();
-
-            if (inputStream != null) {
-                JSONObject inputStreamObject = (JSONObject) JSONValue.parseWithException(inputStream);
-                playerUUID = inputStreamObject.get("id").toString();
-            }
-        } catch (IOException | ParseException e) {
-            e.printStackTrace();
-        }
-
-        return playerUUID;
-    }
-
-    public static void ExecuteServerCommand(String command) {
-        DiscordWhitelister.getPlugin().getServer().getScheduler().callSyncMethod(DiscordWhitelister.getPlugin(), ()
-                -> DiscordWhitelister.getPlugin().getServer().dispatchCommand(
-                DiscordWhitelister.getPlugin().getServer().getConsoleSender(), command));
-    }
-
-    private enum SenderType {CONSOLE, PLAYER, UNKNOWN}
-
-    public static void CheckAndExecuteCommand(String configInput, String playerTargetName) {
-        SenderType senderType;
-
-        // Check command sender type
-        if (configInput.startsWith("CONSOLE"))
-            senderType = SenderType.CONSOLE;
-        else if (configInput.startsWith("PLAYER"))
-            senderType = SenderType.PLAYER;
-        else
-            senderType = SenderType.UNKNOWN;
-
-        if (senderType.equals(SenderType.UNKNOWN)) {
-            DiscordWhitelister.getPluginLogger().warning("Unknown command sender type (should be one of the following: CONSOLE, PLAYER), offending line: " + configInput);
-            return;
-        }
-
-        // Get command which is after the first :
-        String commandToSend = configInput.substring(configInput.indexOf(":") + 1);
-        // Set player name if %PLAYER% is used
-        final String commandToSendFinal = commandToSend.replaceAll("%PLAYER%", playerTargetName);
-
-        if (senderType.equals(SenderType.CONSOLE)) {
-            DiscordWhitelister.getPlugin().getServer().getScheduler().callSyncMethod(DiscordWhitelister.getPlugin(),
-                    () -> DiscordWhitelister.getPlugin().getServer().dispatchCommand(DiscordWhitelister.getPlugin().getServer().getConsoleSender(), commandToSendFinal));
-        } else {
-            DiscordWhitelister.getPlugin().getServer().getPlayer(playerTargetName).performCommand(commandToSendFinal);
-        }
-    }
 
 
-    public static void AssignRoleToUser(Guild guild, String targetUserId, String rollId) { 
+
+
+
+
+    public static void AssignRoleToUser(String targetUserId, String rollId) { 
         Role role = guild.getRoleById(rollId);
         if (role == null) {
             DiscordWhitelister.getPluginLogger().warning("Failed to assign role " + rollId
@@ -380,7 +221,7 @@ public class DiscordClient extends ListenerAdapter {
         }
     }
 
-    public static void RemoveRoleFromUser(Guild guild, String targetUserId, String rollId) {
+    public static void RemoveRoleFromUser(String targetUserId, String rollId) {
         Role role = guild.getRoleById(rollId);
         if (role == null) {
             DiscordWhitelister.getPluginLogger().warning("Failed to remove role " + rollId
