@@ -71,6 +71,9 @@ public class DiscordClient extends ListenerAdapter {
                     				new SubcommandData("user", "Find the in-game Minecraft username for a given Discord user")
                     						.addOption(USER, "discord_user", "Discord user to look for", true)))
                     .queue();
+            
+            guild = javaDiscordAPI.getGuildById(DiscordWhitelister.mainConfig.getFileConfiguration().getString("guild-id"));
+            
             return 0;
             
         } catch (LoginException | InterruptedException e) {
@@ -98,9 +101,6 @@ public class DiscordClient extends ListenerAdapter {
         for (int i = 0; i < targetTextChannels.length; ++i) {
             targetTextChannels[i] = mainConfig.getList("target-text-channels").get(i).toString();
         }
-        
-        guild = javaDiscordAPI.getGuildById(DiscordWhitelister.mainConfig.getFileConfiguration().getString("guild-id"));
-
     }
 
     public static String getOnlineStatus() {
