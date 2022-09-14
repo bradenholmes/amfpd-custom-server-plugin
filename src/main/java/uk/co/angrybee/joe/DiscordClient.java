@@ -16,7 +16,6 @@ import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.bukkit.configuration.file.FileConfiguration;
 import uk.co.angrybee.joe.commands.discord.*;
-import uk.co.angrybee.joe.events.OnBanEvent;
 import uk.co.angrybee.joe.events.ShutdownEvents;
 
 import javax.security.auth.login.LoginException;
@@ -47,7 +46,6 @@ public class DiscordClient extends ListenerAdapter {
                     .enableIntents(GatewayIntent.GUILD_MEMBERS)
                     .setChunkingFilter(ChunkingFilter.ALL)
                     .addEventListeners(new DiscordClient())
-                    .addEventListeners(new OnBanEvent())
                     .addEventListeners(new ShutdownEvents())
                     .build();
 
@@ -115,7 +113,7 @@ public class DiscordClient extends ListenerAdapter {
     public void onSlashCommand(SlashCommandEvent event) {
 
 
-        if (event.getGuild().getId() != DiscordWhitelister.mainConfig.getFileConfiguration().getString("guild-id")) {
+        if (!event.getGuild().getId().equals(DiscordWhitelister.mainConfig.getFileConfiguration().getString("guild-id"))) {
             MessageEmbed messageEmbed = DiscordResponses.makeSimpleInfoMessage("This bot can only used in AMFPD");
             ReplyAndRemoveAfterSeconds(event, messageEmbed);
             return;

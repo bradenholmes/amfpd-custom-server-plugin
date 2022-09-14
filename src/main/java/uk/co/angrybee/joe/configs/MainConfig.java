@@ -49,6 +49,7 @@ public class MainConfig extends Config {
         
         CheckEntry("guild-id", "1016931782194626601");
         CheckEntry("member-role", "1017895030649794622");
+        CheckEntry("banned-role", "1019703075256147988");
         // Allowed to add to the whitelist
         CheckEntry("add-roles", Arrays.asList("1017895030649794622", "1017942234252968018"));
         

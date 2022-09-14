@@ -8,7 +8,7 @@ import java.util.Arrays;
 
 public class AuthorPermissions
 {
-    private boolean userCanAdd = true;
+    private boolean userCanAdd = false;
     private boolean userCanRemove = false;
     
 
@@ -22,7 +22,7 @@ public class AuthorPermissions
             }
         }
 
-        for (Role role : event.getGuild().getMember(event.getUser()).getRoles())
+        for (Role role : event.getMember().getRoles())
         {
             if (Arrays.stream(DiscordClient.allowedToAddRoles).parallel().anyMatch(role.getId()::equalsIgnoreCase))
             {
@@ -35,24 +35,6 @@ public class AuthorPermissions
     
     public AuthorPermissions(MessageReceivedEvent event)
     {
-        for (Role role : event.getGuild().getMember(event.getAuthor()).getRoles())
-        {
-        	
-        	if (Arrays.stream(DiscordClient.allowedToAddRoles).parallel().anyMatch(role.getId()::equalsIgnoreCase)) {
-        		userCanAdd = true;
-        		break;
-        	}
-        }
-
-
-        for (Role role : event.getGuild().getMember(event.getAuthor()).getRoles())
-        {
-            if (Arrays.stream(DiscordClient.allowedToRemoveRoles).parallel().anyMatch(role.getId()::equalsIgnoreCase))
-            {
-                userCanRemove = true;
-                break;
-            }
-        }
 
     }
 

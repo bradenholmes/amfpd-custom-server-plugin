@@ -17,6 +17,7 @@ public class OnBanEvent implements Listener
     @EventHandler
     public void onCommandBan(PlayerCommandPreprocessEvent e) throws IOException
     {
+    	DiscordWhitelister.getPluginLogger().info("ENTERED ON BAN EVENT");
         // Context
         Player commandCaller = e.getPlayer();
         String message = e.getMessage().toLowerCase();
@@ -51,8 +52,9 @@ public class OnBanEvent implements Listener
         DiscordWhitelister.ExecuteServerCommand("whitelist remove " + banTarget);
         if (banned.getDiscordId() != 0) {
         	DiscordClient.RemoveRoleFromUser(String.valueOf(banned.getDiscordId()), DiscordWhitelister.mainConfig.getFileConfiguration().getString("member-role"));
+        	DiscordClient.AssignRoleToUser(String.valueOf(banned.getDiscordId()), DiscordWhitelister.mainConfig.getFileConfiguration().getString("banned-role"));
         } else {
-        	DiscordWhitelister.getPluginLogger().warning(banTarget + " does not have a linked Discord Id, cannot remove member role");
+        	DiscordWhitelister.getPluginLogger().warning(banTarget + " does not have a linked Discord Id, cannot assign roles!");
         }
     }
 }
