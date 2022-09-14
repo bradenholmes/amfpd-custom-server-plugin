@@ -111,20 +111,21 @@ public class DiscordClient extends ListenerAdapter {
                     new CommandData("whitelist", "Edit the whitelist.")
                             .addSubcommands(
                                     new SubcommandData("add", "Add a user to the whitelist")
-                                            .addOption(STRING, "minecraft_username", "Minecraft username to add", true)
-                                            .addOption(USER, "discord_user", "Discord user to bind to", false),
+                                            .addOption(STRING, "minecraft_username", "Minecraft username to add", true),
                                     new SubcommandData("remove", "Remove user from the whitelist")
-                                            .addOption(STRING, "minecraft_username", "Minecraft username to remove", true),
-                                    new SubcommandData("clear", "Clear whitelists assigned to your account"),
-                                    new SubcommandData("whois", "Find the Discord name linked to a Minecraft name")
-                                            .addOption(STRING, "minecraft_username", "Minecraft name to search", false)
-                                            .addOption(USER, "discord_user", "Minecraft name to search", false)),
-
+                                            .addOption(STRING, "minecraft_username", "Minecraft username to remove", true)),
+                            
+                    new CommandData("identify", "link minecraft names to discord names")
+                    		.addSubcommands(
+                    				new SubcommandData("self", "Set your in-game Minecraft username (required)")
+                    						.addOption(STRING, "minecraft_username", "Your in-game Minecraft username", true),
+                    				new SubcommandData("user", "Find the in-game Minecraft username for a given Discord user")
+                    						.addOption(USER, "discord_user", "Discord user to look for", true)),
+                    		
                     new CommandData("clearname", "Clear name from all lists")
                             .addOption(STRING, "minecraft_username", "Minecraft username to clear", true),
                     new CommandData("clearban", "Clear ban from user")
-                            .addOption(STRING, "minecraft_username", "Minecraft username to unban", true),
-                    new CommandData("help", "Show bot info"))
+                            .addOption(STRING, "minecraft_username", "Minecraft username to unban", true))
                     .queue();
 
             // Send the new set of commands to discord, this will override any existing global commands with the new set provided here
@@ -343,8 +344,10 @@ public class DiscordClient extends ListenerAdapter {
         }
         OptionMapping dc_name_op = event.getOption("discord_user"); // the "user" option is required so it doesn't need a null-check here
         Member dc_name = null;
+        long dc_id = 0;
         if (dc_name_op != null) {
             dc_name = dc_name_op.getAsMember();
+            dc_id = dc_name_op.getAsUser().getIdLong();
         }
 
         switch (event.getName()) {
@@ -353,11 +356,7 @@ public class DiscordClient extends ListenerAdapter {
                     switch (subcommand) {
                         case "add": {
                             //!whitelist add command:
-                            if (dc_name != null) {
-                                CommandAdd.ExecuteCommand(event, mc_name, dc_name);
-                            } else {
-                                CommandAdd.ExecuteCommand(event, mc_name);
-                            }
+                            CommandAdd.ExecuteCommand(event, mc_name);
                         }
                         break;
                         case "remove": {
@@ -365,23 +364,23 @@ public class DiscordClient extends ListenerAdapter {
                             CommandRemove.ExecuteCommand(event, mc_name);
                         }
                         break;
-                        case "clear": {
-                            CommandClear.ExecuteCommand(event);
-                        }
-                        break;
-                        case "whois": {
-                            if (dc_name != null) {
-                                CommandWhoIsDiscord.ExecuteCommand(event, dc_name);
-                            }else if (mc_name != null){
-                                CommandWhoIs.ExecuteCommand(event, mc_name);
-                            }else{
-                                EmbedBuilder msg = CreateEmbeddedMessage("Sorry...","You either need to provide a Minecraft username or a discord user",EmbedMessageType.FAILURE);
-                                ReplyAndRemoveAfterSeconds(event, msg.build());
-                            }
-                        }
-                        break;
                     }
                 }
+            }
+            break;
+            case "identify": {
+            	if (subcommand != null) {
+            		switch (subcommand) {
+	            		case "self": {
+	            			CommandIdentifySelf.ExecuteCommand(event, mc_name);
+	            		}
+	            		break;
+	            		case "user": {
+	            			CommandIdentifyUser.ExecuteCommand(event, dc_id);
+	            		}
+	            		break;
+            		}
+            	}
             }
             break;
             case "clearname": {
@@ -394,9 +393,6 @@ public class DiscordClient extends ListenerAdapter {
             }
             break;
 
-            case "help":
-                CommandInfo.ExecuteCommand(event);
-                break;
             default:
                 event.reply("I can't handle that command right now :(").setEphemeral(true).queue();
         }

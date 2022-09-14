@@ -4,23 +4,20 @@ import org.bukkit.Server;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import com.earth2me.essentials.Essentials;
-import org.kitteh.vanish.VanishPlugin;
 import org.bukkit.plugin.PluginManager;
-import uk.co.angrybee.joe.commands.minecraft.CommandAbout;
+import uk.co.angrybee.joe.commands.minecraft.CommandDiscord;
 import uk.co.angrybee.joe.commands.minecraft.CommandReload;
-import uk.co.angrybee.joe.commands.minecraft.CommandStatus;
 import uk.co.angrybee.joe.configs.*;
 import uk.co.angrybee.joe.events.JoinLeaveEvents;
 import uk.co.angrybee.joe.events.OnBanEvent;
 import uk.co.angrybee.joe.events.OnWhitelistEvents;
+import uk.co.angrybee.joe.sql.MySqlClient;
 import uk.co.angrybee.joe.stores.InGameRemovedList;
 import uk.co.angrybee.joe.stores.RemovedList;
 import uk.co.angrybee.joe.stores.UserList;
 import uk.co.angrybee.joe.stores.WhitelistedPlayers;
-import uk.co.angrybee.joe.events.EssentialsVanishEvents;
-import uk.co.angrybee.joe.events.SuperVanishEvents;
-import uk.co.angrybee.joe.events.VanishNoPacketEvents;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -53,7 +50,6 @@ public class DiscordWhitelister extends JavaPlugin {
 
     // Plugins
     public static Essentials essentialsPlugin;
-    public static VanishPlugin vanishNoPacketPlugin;
     public static boolean hasSuperVanishOrPremiumVanish;
 
     // For not counting vanished players when other players join/leave
@@ -78,7 +74,6 @@ public class DiscordWhitelister extends JavaPlugin {
         // Get/check for plugin
         PluginManager pluginManager = getServer().getPluginManager();
         essentialsPlugin = (Essentials) pluginManager.getPlugin("Essentials");
-        vanishNoPacketPlugin = (VanishPlugin) pluginManager.getPlugin("VanishNoPacket");
         hasSuperVanishOrPremiumVanish = pluginManager.isPluginEnabled("SuperVanish") || pluginManager.isPluginEnabled("PremiumVanish");
 
         int initSuccess = InitBot(true);
@@ -98,9 +93,11 @@ public class DiscordWhitelister extends JavaPlugin {
             DiscordClient.RequiredRoleStartupCheck();
         }
 
-        this.getCommand("discordwhitelister").setExecutor(new CommandStatus());
-        this.getCommand("discordwhitelisterabout").setExecutor(new CommandAbout());
+        this.getCommand("discord").setExecutor(new CommandDiscord());
         this.getCommand("discordwhitelisterreload").setExecutor(new CommandReload());
+        
+        MySqlClient.get();
+        pluginLogger.info("Successfully established MySql connection");
     }
 
     @Override
@@ -108,6 +105,14 @@ public class DiscordWhitelister extends JavaPlugin {
         if (initialized ) {
             DiscordClient.javaDiscordAPI.shutdownNow();
         }
+        
+        try {
+			MySqlClient.get().closeConnection();
+			pluginLogger.info("Closed MySQL connection");
+		} catch (SQLException e) {
+			pluginLogger.severe("Failed to close MySQL connection");
+		}
+        
     }
 
     public static JavaPlugin getPlugin() {
@@ -258,19 +263,7 @@ public class DiscordWhitelister extends JavaPlugin {
                 if (firstInit) {
                     // Register events if enabled
                     thisServer.getPluginManager().registerEvents(new JoinLeaveEvents(), thisPlugin);
-                    //pluginLogger.info("Registered join/leave events!");
-                    if (hasSuperVanishOrPremiumVanish) {
-                        thisServer.getPluginManager().registerEvents(new SuperVanishEvents(), thisPlugin);
-                        //pluginLogger.info("Registered SuperVanish events!");
-                    }
-                    if (vanishNoPacketPlugin != null) {
-                        thisServer.getPluginManager().registerEvents(new VanishNoPacketEvents(), thisPlugin);
-                        //pluginLogger.info("Registered VanishNoPacket events!");
-                    }
-                    if (essentialsPlugin != null) {
-                        thisServer.getPluginManager().registerEvents(new EssentialsVanishEvents(), thisPlugin);
-                        //pluginLogger.info("Registered Essentials vanish events!");
-                    }
+
                 }
 
                 // Set initial player count

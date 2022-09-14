@@ -8,11 +8,11 @@ import java.util.Arrays;
 
 public class AuthorPermissions
 {
-    private boolean userCanAddRemove = false;
-    private boolean userCanAdd = false;
-    private boolean userHasLimitedAdd = false;
-    private boolean userIsBanned = false;
-    private boolean userCanUseClear = false;
+    private boolean userCanAddRemove = true;
+    private boolean userCanAdd = true;
+    private boolean userHasLimitedAdd = true;
+    private boolean userIsBanned = true;
+    private boolean userCanUseClear = true;
 
     public AuthorPermissions(SlashCommandEvent event) {
         for (Role role : event.getMember().getRoles())

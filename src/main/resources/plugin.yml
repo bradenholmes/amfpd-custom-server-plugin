@@ -6,10 +6,9 @@ main: uk.co.angrybee.joe.DiscordWhitelister
 description: Discord Whitelister.
 softdepend: [Essentials, SuperVanish, VanishNoPacket]
 commands:
-  discordwhitelister:
-    description: See info about this plugin
+  discord:
+    description: Get the link to the Discord
     usage: /<command>
-    aliases: [dw]
   discordwhitelisterabout:
     description: See plugin version and Discord connection status
     usage: /<command>

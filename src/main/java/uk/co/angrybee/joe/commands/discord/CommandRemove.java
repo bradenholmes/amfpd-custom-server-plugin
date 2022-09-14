@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import uk.co.angrybee.joe.AuthorPermissions;
 import uk.co.angrybee.joe.DiscordClient;
 import uk.co.angrybee.joe.DiscordWhitelister;
+import uk.co.angrybee.joe.sql.MySqlClient;
 import uk.co.angrybee.joe.stores.RemovedList;
 import uk.co.angrybee.joe.stores.UserList;
 import uk.co.angrybee.joe.stores.WhitelistedPlayers;
@@ -62,8 +63,12 @@ public class CommandRemove {
                 if (!notOnWhitelist) // aka on the whitelist
                 {
                     DiscordClient.UnWhitelist(finalNameToRemove);
+                    MySqlClient.get().logWhitelistEvent(author.getId(), "REMOVE", mc_name);
+
                     // Configure message here instead of on the main thread - this means this will run even if the message is never sent, but is a good trade off (I think)
                     EmbedBuilder embedBuilderSuccess;
+                    
+                    
 
                     if (!DiscordWhitelister.useCustomMessages) {
                         if (!DiscordWhitelister.mainConfig.getFileConfiguration().getBoolean("set-removed-message-colour-to-red"))
@@ -94,7 +99,7 @@ public class CommandRemove {
                     }
 
                     EmbedBuilder embedBuilderFailure;
-
+                    
                     // No custom message needed
                     embedBuilderFailure = DiscordClient.CreateEmbeddedMessage(("Failed to remove " + finalNameToRemove + " from the whitelist"), (author.getAsMention() + ", failed to remove `" + finalNameToRemove + "` from the whitelist. " +
                             "This should never happen, you may have to remove the player manually and report the issue."), DiscordClient.EmbedMessageType.FAILURE);

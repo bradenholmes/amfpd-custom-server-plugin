@@ -6,7 +6,8 @@
 
   <groupId>uk.co.angrybee.joe</groupId>
   <artifactId>discord-whitelister</artifactId>
-  <version>1.5.0</version>
+  <version>1.4.9</version>
+  <packaging>jar</packaging>
 
   <name>discord-whitelister</name>
   <url>https://github.com/JoeShimell/DiscordWhitelisterSpigot</url>
@@ -45,7 +46,7 @@
     <dependency>
       <groupId>org.spigotmc</groupId>
       <artifactId>spigot-api</artifactId>
-      <version>1.17.1-R0.1-SNAPSHOT</version>
+      <version>1.19.1-R0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
 
@@ -86,16 +87,6 @@
       <type>maven-plugin</type>
     </dependency>
 
-    <!-- SuperVanish -->
-    <dependency>
-      <groupId>com.github.LeonMangler</groupId>
-      <artifactId>SuperVanish</artifactId>
-      <!-- POM is invalid with java compiler ver > 8 (maven-compiler-plugin source & target version is set to 8) -->
-      <!-- TODO: get updated version if/when available for better support with compiler versions > 8  -->
-      <version>6.2.6-2</version>
-      <scope>provided</scope>
-    </dependency>
-
     <!-- EssX-->
     <dependency>
       <groupId>net.essentialsx</groupId>
@@ -109,15 +100,18 @@
         </exclusion>
       </exclusions>
     </dependency>
-
-    <!-- VanishNoPacket -->
-    <dependency>
-      <groupId>com.github.mbax</groupId>
-      <artifactId>VanishNoPacket</artifactId>
-      <version>0cb428ff27ced0b97b9601a3088e9b93616c907c</version>
-      <scope>provided</scope>
-    </dependency>
-
+    
+    <!--  My dependencies  -->
+	<dependency>
+	  <groupId>mysql</groupId>
+	  <artifactId>mysql-connector-java</artifactId>
+	  <version>8.0.30</version>
+	</dependency>
+	<dependency>
+		<groupId>org.projectlombok</groupId>
+		<artifactId>lombok</artifactId>
+		<version>1.18.24</version>
+	</dependency>
   </dependencies>
 
   <build>
