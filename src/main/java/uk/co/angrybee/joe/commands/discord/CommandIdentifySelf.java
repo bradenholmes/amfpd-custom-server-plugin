@@ -36,8 +36,9 @@ public class CommandIdentifySelf {
     	
     	
     	boolean isSuccessful = false;
+    	boolean isBanned = false;
     	if (mcUserMatch == null && discordIdMatch == null) {
-        	MySqlClient.get().insertPerson(mc_user, author.getId(), author.getName(), false);
+        	MySqlClient.get().insertPerson(mc_user, author.getId(), author.getName(), false, false);
         	isSuccessful = true;
     	} else if (mcUserMatch != null) {
     		if (mcUserMatch.getDiscordId() != 0) {
@@ -45,8 +46,9 @@ public class CommandIdentifySelf {
                 return;
     		}
     		
-    		MySqlClient.get().updatePerson(mcUserMatch.getPrimaryId(), mcUserMatch.getMinecraftName(), author.getId(), author.getName(), mcUserMatch.isWhitelisted());
+    		MySqlClient.get().updatePerson(mcUserMatch.getPrimaryId(), mcUserMatch.getMinecraftName(), author.getId(), author.getName(), mcUserMatch.isWhitelisted(), mcUserMatch.isBanned());
     		isSuccessful = true;
+    		if (mcUserMatch.isBanned()) isBanned = true;
 
     	} else if (discordIdMatch != null) {
     		if (!StringUtils.isEmpty(discordIdMatch.getMinecraftName())) {
@@ -54,13 +56,18 @@ public class CommandIdentifySelf {
                 return;
     		}
     		
-    		MySqlClient.get().updatePerson(discordIdMatch.getPrimaryId(), discordIdMatch.getMinecraftName(), author.getId(), author.getName(), discordIdMatch.isWhitelisted());
+    		MySqlClient.get().updatePerson(discordIdMatch.getPrimaryId(), discordIdMatch.getMinecraftName(), author.getId(), author.getName(), discordIdMatch.isWhitelisted(), discordIdMatch.isBanned());
     		isSuccessful = true;
+    		if (discordIdMatch.isBanned()) isBanned = true;
     	}
     	
     	if (isSuccessful) {
     		DiscordClient.ReplyAndRemoveAfterSeconds(event, DiscordResponses.getIdentifySelfSuccess(author, mc_user));
-    		DiscordClient.AssignRoleToUser(author.getId(), DiscordWhitelister.mainConfig.getFileConfiguration().getString("member-role"));
+    		if (!isBanned) {
+    			DiscordClient.AssignRoleToUser(author.getId(), DiscordWhitelister.mainConfig.getFileConfiguration().getString("member-role"));
+    		} else {
+    			DiscordClient.AssignRoleToUser(author.getId(), DiscordWhitelister.mainConfig.getFileConfiguration().getString("banned-role"));
+    		}
     		DiscordWhitelister.getPluginLogger().info("Discord user " + author.getName() + " (" + author.getId() + ") has identified themselves as '" + mc_user + "'");
     	}
 

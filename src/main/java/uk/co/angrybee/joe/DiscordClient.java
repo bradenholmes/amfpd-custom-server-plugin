@@ -32,7 +32,6 @@ public class DiscordClient extends ListenerAdapter {
     private static String[] targetTextChannels;
 
     public static JDA javaDiscordAPI;
-    private static Guild guild;
 
     public static int InitializeClient(String clientToken) {
         AssignVars();
@@ -69,8 +68,6 @@ public class DiscordClient extends ListenerAdapter {
                     				new SubcommandData("user", "Find the in-game Minecraft username for a given Discord user")
                     						.addOption(USER, "discord_user", "Discord user to look for", true)))
                     .queue();
-            
-            guild = javaDiscordAPI.getGuildById(DiscordWhitelister.mainConfig.getFileConfiguration().getString("guild-id"));
             
             return 0;
             
@@ -209,24 +206,26 @@ public class DiscordClient extends ListenerAdapter {
 
 
     public static void AssignRoleToUser(String targetUserId, String rollId) { 
+    	Guild guild = javaDiscordAPI.getGuildById(DiscordWhitelister.mainConfig.getFileConfiguration().getString("guild-id"));
         Role role = guild.getRoleById(rollId);
         if (role == null) {
             DiscordWhitelister.getPluginLogger().warning("Failed to assign role " + rollId
                     + " to user " + targetUserId + " as it could not be found in "
                     + guild.getName());
         } else {
-        	guild.addRoleToMember(guild.getMemberById(targetUserId), role);
+        	guild.addRoleToMember(guild.getMemberById(targetUserId), role).queue();
         }
     }
 
     public static void RemoveRoleFromUser(String targetUserId, String rollId) {
+    	Guild guild = javaDiscordAPI.getGuildById(DiscordWhitelister.mainConfig.getFileConfiguration().getString("guild-id"));
         Role role = guild.getRoleById(rollId);
         if (role == null) {
             DiscordWhitelister.getPluginLogger().warning("Failed to remove role " + rollId
                     + " to user " + targetUserId + " as it could not be found in "
                     + guild.getName());
         } else {
-        	guild.removeRoleFromMember(guild.getMemberById(targetUserId), role);
+        	guild.removeRoleFromMember(guild.getMemberById(targetUserId), role).queue();
         }
 
     }

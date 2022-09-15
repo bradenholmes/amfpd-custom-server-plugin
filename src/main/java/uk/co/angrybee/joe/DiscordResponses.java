@@ -117,6 +117,17 @@ public class DiscordResponses
     	return eb.build();
     }
     
+    public static MessageEmbed getUserBanned(User messageAuthor, String mc_username) {
+    	EmbedBuilder eb = new EmbedBuilder();
+    	
+    	eb.setTitle(mc_username + " is banned!");
+    	eb.setDescription("Unfortunately " + mc_username + " has been banned from the server and cannot be whitelisted. Contact an administrator if you feel this is an error.");
+    	eb.setThumbnail("https://minotar.net/armor/bust/" + Utils.minecraftUsernameToUUID(mc_username) + "/100.png");
+    	eb.setColor(failureColor);
+    	
+    	return eb.build();
+    }
+    
     public static MessageEmbed getInsufficientPerms(User messageAuthor, String commandTried) {
         EmbedBuilder eb = new EmbedBuilder();
         

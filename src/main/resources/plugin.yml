@@ -1,19 +1,11 @@
 name: DiscordWhitelister
 version: 1.5.0
 api-version: 1.17
-author: Joe Shimell
+author: Braden Holmes
 main: uk.co.angrybee.joe.DiscordWhitelister
 description: Discord Whitelister.
-softdepend: [Essentials, SuperVanish, VanishNoPacket]
+softdepend: []
 commands:
   discord:
     description: Get the link to the Discord
     usage: /<command>
-  discordwhitelisterabout:
-    description: See plugin version and Discord connection status
-    usage: /<command>
-    aliases: [dwabout]
-  discordwhitelisterreload:
-    description: Hot reload Discord client
-    usage: /<command>
-    aliases: [dwreload]

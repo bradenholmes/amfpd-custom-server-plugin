@@ -37,9 +37,16 @@ public class CommandAdd {
 
         //check if user is already on the whitelist. if so, method returns
         Person p = MySqlClient.get().searchPerson(mc_user, "", "");
-        if (p != null && p.isWhitelisted()) {
-            DiscordClient.ReplyAndRemoveAfterSeconds(event, DiscordResponses.getUserAlreadyOnWhitelist(author, mc_user));
-            return;
+        if (p != null) {
+        	if (p.isWhitelisted()) {
+                DiscordClient.ReplyAndRemoveAfterSeconds(event, DiscordResponses.getUserAlreadyOnWhitelist(author, mc_user));
+                return;
+        	}
+        	if (p.isBanned()) {
+                DiscordClient.ReplyAndRemoveAfterSeconds(event, DiscordResponses.getUserBanned(author, mc_user));
+                return;
+        	}
+
         }
         
         

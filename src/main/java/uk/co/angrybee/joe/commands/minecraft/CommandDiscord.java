@@ -11,7 +11,6 @@ public class CommandDiscord implements CommandExecutor {
     // about command
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-    	sender.getServer().dispatchCommand(sender.getServer().getConsoleSender(), "tell " + sender.getName() + " Click the discord link below:");
         sender.getServer().dispatchCommand(sender.getServer().getConsoleSender(), "tellraw " + sender.getName() + " {\"text\":\"https://discord.gg/ZeyXpcDKEc\", \"color\":\"aqua\", \"underlined\":\"true\", \"clickEvent\":{\"action\":\"open_url\",\"value\":\"https://discord.gg/ZeyXpcDKEc\"}}");
         return true;
     }

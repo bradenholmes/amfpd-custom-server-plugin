@@ -12,6 +12,7 @@ public class Person
 	private long discordId = 0;
 	private String discordName;
 	private boolean whitelisted;
+	private boolean banned;
 	
 	public boolean equals(Object b) {
 		if (!(b instanceof Person)) {
