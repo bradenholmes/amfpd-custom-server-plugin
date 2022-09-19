@@ -30,7 +30,7 @@ public class CommandIdentifySelf {
     	
     	if (mcUserMatch != null && discordIdMatch != null && !mcUserMatch.equals(discordIdMatch)) {
     		DiscordWhitelister.getPluginLogger().severe("ERROR: two separate db rows have been found for a singular user. this should never happen! FIX ME (CommandIdentifySelf)");
-    		DiscordClient.ReplyAndRemoveAfterSeconds(event, DiscordResponses.makeSimpleInfoMessage("a critical error occured, contact an administrator"));
+    		DiscordClient.ReplyAndRemoveAfterSeconds(event, DiscordResponses.makeErrorMessage());
     		return;
     	}
     	
@@ -39,14 +39,25 @@ public class CommandIdentifySelf {
     	boolean isBanned = false;
     	if (mcUserMatch == null && discordIdMatch == null) {
         	MySqlClient.get().insertPerson(mc_user, author.getId(), author.getName(), false, false);
-        	isSuccessful = true;
+        	Person p = MySqlClient.get().searchPerson(mc_user, author.getId(), author.getName());
+        	if (p != null) {
+        		isSuccessful = true;
+        	} else {
+        		DiscordWhitelister.getPluginLogger().severe("Failed to add new player into DB during Identify Self (mc_user: " + mc_user + ")");
+        		DiscordClient.ReplyAndRemoveAfterSeconds(event, DiscordResponses.makeErrorMessage());
+        		return;
+        	}
+        	
     	} else if (mcUserMatch != null) {
     		if (mcUserMatch.getDiscordId() != 0) {
                 DiscordClient.ReplyAndRemoveAfterSeconds(event, DiscordResponses.makeSimpleInfoMessage("'" + mc_user + "' already belongs to " + mcUserMatch.getDiscordName() + ". If this is an error, contact an administrator"));
                 return;
     		}
     		
-    		MySqlClient.get().updatePerson(mcUserMatch.getPrimaryId(), mcUserMatch.getMinecraftName(), author.getId(), author.getName(), mcUserMatch.isWhitelisted(), mcUserMatch.isBanned());
+    		mcUserMatch.setDiscordId(author.getIdLong());
+    		mcUserMatch.setDiscordName(author.getName());
+    		
+    		MySqlClient.get().updatePerson(mcUserMatch);
     		isSuccessful = true;
     		if (mcUserMatch.isBanned()) isBanned = true;
 

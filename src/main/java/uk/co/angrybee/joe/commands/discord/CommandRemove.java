@@ -1,5 +1,7 @@
 package uk.co.angrybee.joe.commands.discord;
 
+import java.util.logging.Level;
+
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import uk.co.angrybee.joe.AuthorPermissions;
@@ -19,6 +21,12 @@ public class CommandRemove {
         AuthorPermissions authorPermissions = new AuthorPermissions(event);
         User author = event.getUser();
         
+		Person caller = MySqlClient.get().searchPerson("", author.getId(), "");
+		if (caller == null) {
+			DiscordWhitelister.getPluginLogger().log(Level.SEVERE, "Unidentified user attempted to remove from the whitelist");
+			return;
+		}
+		
         DiscordWhitelister.getPlugin().getLogger().info(author.getName() + "(" + author.getId() + ") attempted to remove " + mc_user + " from the whitelist");
         
         //check author permissions. if insufficient, method returns
@@ -35,16 +43,22 @@ public class CommandRemove {
     	}
     	
         //check if user is on the whitelist. if not, method returns
-        Person p = MySqlClient.get().searchPerson(mc_user, "", "");
-        if (p == null || !p.isWhitelisted()) {
+        Person subject = MySqlClient.get().searchPerson(mc_user, "", "");
+        if (subject == null || !subject.isWhitelisted()) {
             DiscordClient.ReplyAndRemoveAfterSeconds(event, DiscordResponses.getUserNotOnWhitelist(author, mc_user));
             return;
+        } else {
+        	subject.setWhitelisted(false);
         }
+        
+        MySqlClient.get().updatePerson(subject);
         
         //execute wl add command
         DiscordWhitelister.ExecuteServerCommand("whitelist remove " + mc_user);
         //save wl event to db
-        MySqlClient.get().logWhitelistEvent(author.getId(), WhitelistEventType.REMOVE, mc_user);
+        MySqlClient.get().logWhitelistEvent(caller.getPrimaryId(), WhitelistEventType.REMOVE, subject.getPrimaryId());
+        
+        DiscordWhitelister.getPlugin().getLogger().info(author.getName() + "(" + author.getId() + ") successfully removed " + mc_user + " from the whitelist");
 
         //make and display message
         MessageEmbed whitelistSuccessEmbed = DiscordResponses.getWhitelistRemoveSuccess(author, mc_user);

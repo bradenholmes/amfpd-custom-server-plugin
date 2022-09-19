@@ -158,4 +158,11 @@ public class DiscordResponses
     	return eb.build();
     }
     
+    public static MessageEmbed makeErrorMessage() {
+    	EmbedBuilder eb = new EmbedBuilder();
+    	eb.addField("AN ERROR OCCURED", "Please contact an administrator!", false);
+    	eb.setColor(failureColor);
+    	return eb.build();
+    }
+    
 }

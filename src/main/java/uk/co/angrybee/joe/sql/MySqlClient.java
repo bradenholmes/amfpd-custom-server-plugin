@@ -100,6 +100,10 @@ public class MySqlClient
 		}
 	}
 	
+	public void updatePerson(Person person) {
+		updatePerson(person.getPrimaryId(), person.getMinecraftName(), String.valueOf(person.getDiscordId()), person.getDiscordName(), person.isWhitelisted(), person.isBanned());
+	}
+	
 	public void updatePerson(int primaryId, String minecraftName, String discordId, String discordName, boolean whitelisted, boolean banned) {
 		StringBuilder queryBuilder = new StringBuilder();
 
@@ -200,69 +204,17 @@ public class MySqlClient
 		}
 	}
 	
-	public void logWhitelistEvent(String callerDiscordId, WhitelistEventType type, String subjectMcUser) {
-		
-		Person caller = searchPerson("", callerDiscordId, "");
-		
-		if (caller == null) {
-			DiscordWhitelister.getPluginLogger().log(Level.SEVERE, "Unidentified user attempted to change the whitelist");
-			return;
-		}
+	public void logWhitelistEvent(int callerPrimaryId, WhitelistEventType type, int subjectPrimaryId) {
 		
 		WhitelistEvent event = new WhitelistEvent();
-		event.callerId = caller.getPrimaryId();
+		event.callerId = callerPrimaryId;
 		event.eventType = type.toString();
-
-		if (caller.getMinecraftName().equals(subjectMcUser)) {
-			event.subjectId = caller.getPrimaryId();
-		} else {
-			Person subject = searchPerson(subjectMcUser, "", "");
-			if (subject == null) {
-				insertPerson(subjectMcUser, "", "", false, false);
-			}
-			
-			subject = searchPerson(subjectMcUser, "", "");
-			if (subject == null) {
-				DiscordWhitelister.getPluginLogger().log(Level.SEVERE, "Failed to make a new Person object out of newly whitelisted mc_username");
-				return;
-			} else {
-				if (type == WhitelistEventType.ADD) {
-					updatePerson(subject.getPrimaryId(), "", "", "", true, subject.isBanned());
-				} else if (type == WhitelistEventType.REMOVE) {
-					updatePerson(subject.getPrimaryId(), "", "", "", false, subject.isBanned());
-				}
-			}
-			
-			
-			event.setSubjectId(subject.getPrimaryId());
-		}
+		event.subjectId = subjectPrimaryId;
 		
 		insertWhitelistEvent(event);
 	}
 	
-	public void logWhitelistEventSimple(int callerPrimaryId, WhitelistEventType type, int subjectPrimaryId) {
-		
-		Person caller = getPerson(callerPrimaryId);
-		Person subject = getPerson(subjectPrimaryId);
-		
-		if (caller == null) {
-			DiscordWhitelister.getPluginLogger().log(Level.SEVERE, "Unidentified user attempted to change the whitelist");
-			return;
-		}
-		
-		if (subject == null) {
-			return;
-		}
-		
-		WhitelistEvent event = new WhitelistEvent();
-		event.callerId = caller.getPrimaryId();
-		event.eventType = type.toString();
-		event.subjectId = subject.getPrimaryId();
-		
-		insertWhitelistEvent(event);
-	}
-	
-	public void insertWhitelistEvent(WhitelistEvent event) {
+	private void insertWhitelistEvent(WhitelistEvent event) {
 		StringBuilder queryBuilder = new StringBuilder();
 
 		

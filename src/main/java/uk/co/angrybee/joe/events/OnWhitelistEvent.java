@@ -72,7 +72,7 @@ public class OnWhitelistEvent implements Listener
         MySqlClient.get().updatePerson(person.getPrimaryId(), "", "", "", true, false);
         Person callPerson = MySqlClient.get().searchPerson(caller, "", "");
         if (callPerson != null) {
-        	MySqlClient.get().logWhitelistEventSimple(callPerson.getPrimaryId(), WhitelistEventType.ADD, person.getPrimaryId());
+        	MySqlClient.get().logWhitelistEvent(callPerson.getPrimaryId(), WhitelistEventType.ADD, person.getPrimaryId());
         }
         return RC_SUCCESS;
     }
@@ -110,7 +110,7 @@ public class OnWhitelistEvent implements Listener
         if (person != null) {
             Person callPerson = MySqlClient.get().searchPerson(caller, "", "");
             if (callPerson != null) {
-            	MySqlClient.get().logWhitelistEventSimple(callPerson.getPrimaryId(), WhitelistEventType.REMOVE, person.getPrimaryId());
+            	MySqlClient.get().logWhitelistEvent(callPerson.getPrimaryId(), WhitelistEventType.REMOVE, person.getPrimaryId());
             }
             
         	MySqlClient.get().updatePerson(person.getPrimaryId(), "", "", "", false, person.isBanned());
