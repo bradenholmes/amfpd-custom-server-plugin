@@ -4,7 +4,7 @@ api-version: 1.17
 author: Braden Holmes
 main: uk.co.angrybee.joe.DiscordWhitelister
 description: Discord Whitelister.
-softdepend: []
+softdepend: [PlaceholderAPI]
 commands:
   discord:
     description: Get the link to the Discord
