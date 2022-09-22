@@ -22,7 +22,7 @@ public class CommandAdd {
         
         
         
-		Person caller = MySqlClient.get().searchPerson("", author.getId(), "");
+		Person caller = MySqlClient.searchPerson("", "", author.getId(), "");
 		if (caller == null) {
 			DiscordWhitelister.getPluginLogger().log(Level.SEVERE, "Unidentified user attempted to add to the whitelist");
 			return;
@@ -43,10 +43,10 @@ public class CommandAdd {
     		return;
     	}
 
-
+    	String mcId = Utils.minecraftUsernameToUUID(mc_user);
 
         //check if user is already on the whitelist. if so, method returns
-        Person subject = MySqlClient.get().searchPerson(mc_user, "", "");
+        Person subject = MySqlClient.searchPerson(mcId, "", "", "");
         if (subject != null) {
         	if (subject.isWhitelisted()) {
                 DiscordClient.ReplyAndRemoveAfterSeconds(event, DiscordResponses.getUserAlreadyOnWhitelist(author, mc_user));
@@ -58,17 +58,16 @@ public class CommandAdd {
         	}
 
         } else {
-        	MySqlClient.get().insertPerson(mc_user, "", "", true, false);
+        	subject = MySqlClient.insertPerson(mcId, mc_user, "", "", true, false);
         }
         
-        subject = MySqlClient.get().searchPerson(mc_user, "", "");
 		if (subject == null) {
 			DiscordWhitelister.getPluginLogger().log(Level.SEVERE, "Failed to make a new Person object out of mc_user '" + mc_user + "'");
 			DiscordClient.ReplyAndRemoveAfterSeconds(event, DiscordResponses.makeErrorMessage());
 			return;
 		} else {
 			subject.setWhitelisted(true);
-			MySqlClient.get().updatePerson(subject);
+			MySqlClient.updatePerson(subject);
 		}
 		
 		
@@ -77,7 +76,7 @@ public class CommandAdd {
         //execute wl add command
         DiscordWhitelister.ExecuteServerCommand("whitelist add " + mc_user);
         //save wl event to db
-        MySqlClient.get().logWhitelistEvent(caller.getPrimaryId(), WhitelistEventType.ADD, subject.getPrimaryId());
+        MySqlClient.logWhitelistEvent(caller.getPrimaryId(), WhitelistEventType.ADD, subject.getPrimaryId());
         
         DiscordWhitelister.getPlugin().getLogger().info(author.getName() + "(" + author.getId() + ") successfully whitelisted: " + mc_user);
 

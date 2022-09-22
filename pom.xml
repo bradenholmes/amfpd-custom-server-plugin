@@ -88,6 +88,11 @@
     </dependency>
     
     <!--  My dependencies  -->
+    <dependency>
+      <groupId>com.zaxxer</groupId>
+      <artifactId>HikariCP</artifactId>
+      <version>5.0.0</version>
+    </dependency>
 	<dependency>
 		<groupId>me.clip</groupId>
 		<artifactId>placeholderapi</artifactId>
@@ -229,6 +234,11 @@
               <relocation>
                 <pattern>org.apache</pattern>
                 <shadedPattern>uk.co.angrybee.joe.shaded.org.apache</shadedPattern>
+              </relocation>
+              
+              <relocation>
+                <pattern>com.zaxxer</pattern>
+                <shadedPattern>uk.co.angrybee.joe.shaded.org.zaxxer</shadedPattern>
               </relocation>
 
               <relocation>

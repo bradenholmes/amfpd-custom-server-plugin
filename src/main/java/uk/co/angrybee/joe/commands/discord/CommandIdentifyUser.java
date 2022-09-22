@@ -12,7 +12,7 @@ public class CommandIdentifyUser {
     public static void ExecuteCommand(SlashCommandEvent event, User dc_user) {
         
         if (dc_user != null) {
-        	Person searched = MySqlClient.get().searchPerson("", dc_user.getId(), "");
+        	Person searched = MySqlClient.searchPerson("", "", dc_user.getId(), "");
         	if (searched != null) {
                 DiscordClient.ReplyAndRemoveAfterSeconds(event, DiscordResponses.getIdentifyUserSuccess(dc_user, searched.getMinecraftName()));
                 return;

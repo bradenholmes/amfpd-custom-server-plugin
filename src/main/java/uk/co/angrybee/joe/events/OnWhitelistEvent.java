@@ -10,6 +10,7 @@ import org.bukkit.event.server.ServerCommandEvent;
 import uk.co.angrybee.joe.sql.MySqlClient;
 import uk.co.angrybee.joe.sql.Person;
 import uk.co.angrybee.joe.DiscordWhitelister;
+import uk.co.angrybee.joe.Utils;
 import uk.co.angrybee.joe.Utils.WhitelistEventType;
 
 import java.io.IOException;
@@ -59,20 +60,22 @@ public class OnWhitelistEvent implements Listener
         	return RC_BAD_CMD;
         }
         
-        Person person = MySqlClient.get().searchPerson(target, "", "");
-        if (person == null) {
-        	MySqlClient.get().insertPerson(target, "", "", false, false);
-        	person = MySqlClient.get().searchPerson(target, "", "");
+        String targetId = Utils.minecraftUsernameToUUID(target);
+        Person targetPerson = MySqlClient.searchPerson(targetId, "", "", "");
+        if (targetPerson == null) {
+        	targetPerson = MySqlClient.insertPerson(targetId, target, "", "", false, false);
         }
         
-        if (person.isBanned()) {
+        if (targetPerson.isBanned()) {
         	return RC_BANNED;
         }
         
-        MySqlClient.get().updatePerson(person.getPrimaryId(), "", "", "", true, false);
-        Person callPerson = MySqlClient.get().searchPerson(caller, "", "");
-        if (callPerson != null) {
-        	MySqlClient.get().logWhitelistEvent(callPerson.getPrimaryId(), WhitelistEventType.ADD, person.getPrimaryId());
+        targetPerson.setWhitelisted(true);
+        
+        MySqlClient.updatePerson(targetPerson);
+        Person callerPerson = MySqlClient.searchPerson(Utils.minecraftUsernameToUUID(caller), "", "", "");
+        if (callerPerson != null) {
+        	MySqlClient.logWhitelistEvent(callerPerson.getPrimaryId(), WhitelistEventType.ADD, targetPerson.getPrimaryId());
         }
         return RC_SUCCESS;
     }
@@ -106,14 +109,17 @@ public class OnWhitelistEvent implements Listener
         	return;
         }
         
-        Person person = MySqlClient.get().searchPerson(target, "", "");
-        if (person != null) {
-            Person callPerson = MySqlClient.get().searchPerson(caller, "", "");
-            if (callPerson != null) {
-            	MySqlClient.get().logWhitelistEvent(callPerson.getPrimaryId(), WhitelistEventType.REMOVE, person.getPrimaryId());
+        String targetId = Utils.minecraftUsernameToUUID(target);
+        Person targetPerson = MySqlClient.searchPerson(targetId, "", "", "");
+        if (targetPerson != null) {
+            Person callerPerson = MySqlClient.searchPerson(Utils.minecraftUsernameToUUID(caller), "", "", "");
+            if (callerPerson != null) {
+            	MySqlClient.logWhitelistEvent(callerPerson.getPrimaryId(), WhitelistEventType.REMOVE, targetPerson.getPrimaryId());
             }
             
-        	MySqlClient.get().updatePerson(person.getPrimaryId(), "", "", "", false, person.isBanned());
+            targetPerson.setWhitelisted(false);
+            
+        	MySqlClient.updatePerson(targetPerson);
         	return;
         }
         

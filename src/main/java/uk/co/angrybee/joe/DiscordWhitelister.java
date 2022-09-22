@@ -4,12 +4,11 @@ import org.bukkit.plugin.java.JavaPlugin;
 import uk.co.angrybee.joe.commands.minecraft.CommandDiscord;
 import uk.co.angrybee.joe.configs.*;
 import uk.co.angrybee.joe.events.OnBanEvent;
-import uk.co.angrybee.joe.events.OnJoinEvent;
+import uk.co.angrybee.joe.events.OnChatEvent;
 import uk.co.angrybee.joe.events.OnPardonEvent;
 import uk.co.angrybee.joe.events.OnWhitelistEvent;
-import uk.co.angrybee.joe.sql.MySqlClient;
+import uk.co.angrybee.joe.sql.Datasource;
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -39,6 +38,8 @@ public class DiscordWhitelister extends JavaPlugin {
     public void onEnable() {
         thisPlugin = this;
         pluginLogger = thisPlugin.getLogger();
+        
+        Datasource.start();
 
 
         int initSuccess = InitBot(true);
@@ -53,9 +54,6 @@ public class DiscordWhitelister extends JavaPlugin {
         }
 
         this.getCommand("discord").setExecutor(new CommandDiscord());
-        
-        MySqlClient.get();
-        pluginLogger.info("Successfully established MySql connection");
     }
 
     @Override
@@ -64,12 +62,7 @@ public class DiscordWhitelister extends JavaPlugin {
             DiscordClient.javaDiscordAPI.shutdownNow();
         }
         
-        try {
-			MySqlClient.get().closeConnection();
-			pluginLogger.info("Closed MySQL connection");
-		} catch (SQLException e) {
-			pluginLogger.severe("Failed to close MySQL connection");
-		}
+        Datasource.close();
         
     }
 
@@ -123,7 +116,7 @@ public class DiscordWhitelister extends JavaPlugin {
             thisPlugin.getServer().getPluginManager().registerEvents(new OnBanEvent(), thisPlugin);
             thisPlugin.getServer().getPluginManager().registerEvents(new OnPardonEvent(), thisPlugin);
             thisPlugin.getServer().getPluginManager().registerEvents(new OnWhitelistEvent(), thisPlugin);
-            thisPlugin.getServer().getPluginManager().registerEvents(new OnJoinEvent(), thisPlugin);
+            thisPlugin.getServer().getPluginManager().registerEvents(new OnChatEvent(), thisPlugin);
 
 
             int initSuccess = DiscordClient.InitializeClient(botToken);

@@ -11,6 +11,7 @@ import uk.co.angrybee.joe.sql.MySqlClient;
 import uk.co.angrybee.joe.sql.Person;
 import uk.co.angrybee.joe.DiscordClient;
 import uk.co.angrybee.joe.DiscordWhitelister;
+import uk.co.angrybee.joe.Utils;
 
 import java.io.IOException;
 
@@ -36,34 +37,39 @@ public class OnPardonEvent implements Listener
         	return;
         }
             
-        String pardonTarget = command.substring(cmdPrefix.length() + 1).toLowerCase();
+        String targetName = command.substring(cmdPrefix.length() + 1).toLowerCase();
 
         
-        if(pardonTarget.contains(" ")) {
-            pardonTarget = pardonTarget.substring(0, pardonTarget.indexOf(" "));
+        if(targetName.contains(" ")) {
+            targetName = targetName.substring(0, targetName.indexOf(" "));
         }
 
-        if(StringUtils.isEmpty(pardonTarget)) {
+        if(StringUtils.isEmpty(targetName)) {
         	return;
         }
         
-        DiscordWhitelister.getPluginLogger().info(caller + " has unbanned player '" + pardonTarget + "'");
+        String targetId = Utils.minecraftUsernameToUUID(targetName);
         
-        Person pardoned = MySqlClient.get().searchPerson(pardonTarget, "", "");
+        DiscordWhitelister.getPluginLogger().info(caller + " has unbanned player '" + targetName + "'");
+        
+        Person pardoned = MySqlClient.searchPerson(targetId, "", "", "");
         if (pardoned == null) {
         	return;
         }
         
-        MySqlClient.get().updatePerson(pardoned.getPrimaryId(), "", "", "", true, false);
+        pardoned.setWhitelisted(true);
+        pardoned.setBanned(false);
+        
+        MySqlClient.updatePerson(pardoned);
         
         
-        DiscordWhitelister.ExecuteServerCommand("whitelist add " + pardonTarget);
+        DiscordWhitelister.ExecuteServerCommand("whitelist add " + targetName);
         if (pardoned.getDiscordId() != 0) {
         	DiscordClient.RemoveRoleFromUser(String.valueOf(pardoned.getDiscordId()), DiscordWhitelister.mainConfig.getFileConfiguration().getString("banned-role"));
         	DiscordClient.AssignRoleToUser(String.valueOf(pardoned.getDiscordId()), DiscordWhitelister.mainConfig.getFileConfiguration().getString("member-role"));
         	
         } else {
-        	DiscordWhitelister.getPluginLogger().warning(pardonTarget + " does not have a linked Discord Id, cannot assign roles!");
+        	DiscordWhitelister.getPluginLogger().warning(targetName + " does not have a linked Discord Id, cannot assign roles!");
         }
     }
 }

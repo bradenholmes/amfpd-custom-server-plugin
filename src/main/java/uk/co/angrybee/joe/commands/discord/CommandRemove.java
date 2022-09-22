@@ -21,7 +21,7 @@ public class CommandRemove {
         AuthorPermissions authorPermissions = new AuthorPermissions(event);
         User author = event.getUser();
         
-		Person caller = MySqlClient.get().searchPerson("", author.getId(), "");
+		Person caller = MySqlClient.searchPerson("", "", author.getId(), "");
 		if (caller == null) {
 			DiscordWhitelister.getPluginLogger().log(Level.SEVERE, "Unidentified user attempted to remove from the whitelist");
 			return;
@@ -42,23 +42,24 @@ public class CommandRemove {
     		return;
     	}
     	
+    	String mcId = Utils.minecraftUsernameToUUID(mc_user);
+    	
         //check if user is on the whitelist. if not, method returns
-        Person subject = MySqlClient.get().searchPerson(mc_user, "", "");
+        Person subject = MySqlClient.searchPerson(mcId, "", "", "");
         if (subject == null || !subject.isWhitelisted()) {
             DiscordClient.ReplyAndRemoveAfterSeconds(event, DiscordResponses.getUserNotOnWhitelist(author, mc_user));
             return;
-        } else {
-        	subject.setWhitelisted(false);
         }
         
-        MySqlClient.get().updatePerson(subject);
+        subject.setWhitelisted(false);
+        MySqlClient.updatePerson(subject);
         
         //execute wl add command
         DiscordWhitelister.ExecuteServerCommand("whitelist remove " + mc_user);
         //save wl event to db
-        MySqlClient.get().logWhitelistEvent(caller.getPrimaryId(), WhitelistEventType.REMOVE, subject.getPrimaryId());
+        MySqlClient.logWhitelistEvent(caller.getPrimaryId(), WhitelistEventType.REMOVE, subject.getPrimaryId());
         
-        DiscordWhitelister.getPlugin().getLogger().info(author.getName() + "(" + author.getId() + ") successfully removed " + mc_user + " from the whitelist");
+        DiscordWhitelister.getPlugin().getLogger().info(author.getName() + "(" + author.getId() + ") successfully removed " + subject.getMinecraftName() + " from the whitelist");
 
         //make and display message
         MessageEmbed whitelistSuccessEmbed = DiscordResponses.getWhitelistRemoveSuccess(author, mc_user);

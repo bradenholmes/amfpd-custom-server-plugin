@@ -1,15 +1,14 @@
 package uk.co.angrybee.joe.events;
 
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 import me.clip.placeholderapi.PlaceholderAPI;
 
-public class OnJoinEvent implements Listener {
-	@EventHandler(priority = EventPriority.HIGHEST)
-	public void onJoin(PlayerJoinEvent event) {
+public class OnChatEvent implements Listener {
+	@EventHandler
+	public void onChat(AsyncPlayerChatEvent event) {
 		
 		int level = Integer.valueOf(PlaceholderAPI.setPlaceholders(event.getPlayer(), "%smptweaks_level%"));
 		
@@ -24,7 +23,7 @@ public class OnJoinEvent implements Listener {
 		if (level < 10) {
 			levelColor = "§7";
 		} else if (level < 20) {
-			levelColor = "§e";
+			levelColor = "§6";
 		} else if (level < 30) {
 			levelColor = "§2";
 		} else if (level < 40) {

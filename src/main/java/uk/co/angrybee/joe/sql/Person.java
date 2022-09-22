@@ -8,6 +8,7 @@ import lombok.Setter;
 public class Person
 {
 	private int primaryId;
+	private String minecraftUUID;
 	private String minecraftName;
 	private long discordId = 0;
 	private String discordName;
@@ -20,6 +21,9 @@ public class Person
 		}
 		Person pb = (Person)b;
 		if (pb.discordId != 0 && pb.discordId == this.discordId) {
+			return true;
+		}
+		if (pb.minecraftUUID.equals(this.minecraftUUID)) {
 			return true;
 		}
 		return false;
