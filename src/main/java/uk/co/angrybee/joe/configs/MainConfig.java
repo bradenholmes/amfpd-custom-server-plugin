@@ -60,6 +60,16 @@ public class MainConfig extends Config {
 
         CheckEntry("remove-unnecessary-messages-from-whitelist-channel", false);
         CheckEntry("seconds-to-remove-message-from-whitelist-channel", 5);
-
+        
+        CheckEntry("deathpunish-enabled", true);
+        CheckEntry("deathpunish-punish-pvp", false);
+        CheckEntry("deathpunish-timeout-enabled", true);
+        CheckEntry("deathpunish-timeout-duration", 90);
+        CheckEntry("deathpunish-xp-multiplyby", 0.0);
+        CheckEntry("deathpunish-xp-drop", true);
+        CheckEntry("deathpunish-inv-stackable-multiplyby", 0.5);
+        CheckEntry("deathpunish-inv-unstackable-destroy", false);
+        CheckEntry("deathpunish-inv-equipment-durability-multiplyby", 0.9);
+        CheckEntry("deathpunish-inv-drop", true);
     }
 }

@@ -6,6 +6,7 @@ import uk.co.angrybee.joe.configs.*;
 import uk.co.angrybee.joe.events.OnBanEvent;
 import uk.co.angrybee.joe.events.OnChatEvent;
 import uk.co.angrybee.joe.events.OnPardonEvent;
+import uk.co.angrybee.joe.events.OnPlayerDeathEvent;
 import uk.co.angrybee.joe.events.OnWhitelistEvent;
 import uk.co.angrybee.joe.sql.Datasource;
 
@@ -117,6 +118,7 @@ public class DiscordWhitelister extends JavaPlugin {
             thisPlugin.getServer().getPluginManager().registerEvents(new OnPardonEvent(), thisPlugin);
             thisPlugin.getServer().getPluginManager().registerEvents(new OnWhitelistEvent(), thisPlugin);
             thisPlugin.getServer().getPluginManager().registerEvents(new OnChatEvent(), thisPlugin);
+            thisPlugin.getServer().getPluginManager().registerEvents(new OnPlayerDeathEvent(), thisPlugin);
 
 
             int initSuccess = DiscordClient.InitializeClient(botToken);
