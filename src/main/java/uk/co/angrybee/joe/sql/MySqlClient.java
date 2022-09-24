@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 
 import org.codehaus.plexus.util.StringUtils;
 
@@ -17,7 +18,7 @@ public class MySqlClient
 	}
 	
 	
-	public static Person query(String sql_query) throws SQLException {
+	public static Person queryPerson(String sql_query) throws SQLException {
 		try (Connection con = Datasource.getConnection()){
 			PreparedStatement statement = con.prepareStatement(sql_query);
 			ResultSet res = statement.executeQuery();
@@ -35,7 +36,25 @@ public class MySqlClient
 				return null;
 			}
 		} catch (SQLException e) {
-			DiscordWhitelister.getPluginLogger().severe("An Exception occured for the query '" + sql_query + "'!");
+			DiscordWhitelister.getPluginLogger().severe("An Exception occured during person query '" + sql_query + "'!");
+			throw e;
+		}
+	}
+	
+	public static DeathBan queryDeathBan(String sql_query) throws SQLException {
+		try (Connection con = Datasource.getConnection()){
+			PreparedStatement statement = con.prepareStatement(sql_query);
+			ResultSet res = statement.executeQuery();
+			if (res.next()) {
+				DeathBan db = new DeathBan();
+				db.setMinecraftUUID(res.getString("mc_id"));
+				db.setTime(res.getTimestamp("time"));
+				return db;
+			} else {
+				return null;
+			}
+		} catch (SQLException e) {
+			DiscordWhitelister.getPluginLogger().severe("An Exception occured during deathban query '" + sql_query + "'!");
 			throw e;
 		}
 	}
@@ -172,7 +191,7 @@ public class MySqlClient
 	
 	public static Person getPerson(int primaryId) {
 		try {
-			return query("SELECT id, minecraft_id, minecraft_name, discord_id, discord_name, whitelisted, banned FROM People WHERE id=" + primaryId);
+			return queryPerson("SELECT id, minecraft_id, minecraft_name, discord_id, discord_name, whitelisted, banned FROM People WHERE id=" + primaryId);
 		} catch (Exception e) {
 			return null;
 		}
@@ -208,11 +227,21 @@ public class MySqlClient
 		}
 		
 		try {
-			return query(queryBuilder.toString());
+			return queryPerson(queryBuilder.toString());
 		} catch (SQLException e) {
 			DiscordWhitelister.getPluginLogger().warning("An SQL Exception occurred during person search:");
 			e.printStackTrace();
 			return null;
+		}
+	}
+	
+	public static void logPlayerDeath(String mc_uuid) {
+		String query = "UPDATE People SET deaths = deaths + 1 WHERE minecraft_id='" + mc_uuid + "'";
+		try {
+			execute(query);
+		} catch (SQLException e) {
+			DiscordWhitelister.getPluginLogger().severe("An SQL Exception occured while logging a death for player '" + mc_uuid + "'");
+			e.printStackTrace();
 		}
 	}
 	
@@ -235,6 +264,35 @@ public class MySqlClient
 			execute(queryBuilder.toString());
 		} catch (SQLException e) {
 			DiscordWhitelister.getPluginLogger().severe("An SQL Exception occured while inserting whitelist event");
+			e.printStackTrace();
+		}
+	}
+	
+	public static void insertDeathBan(String mcUUID) {
+		String query = "INSERT INTO deathban (mc_id, time) VALUES ('" + mcUUID + "', '" + new Timestamp(System.currentTimeMillis()) +"')";
+		try {
+			execute(query);
+		} catch (SQLException e) {
+			DiscordWhitelister.getPluginLogger().severe("An SQL Exception occured while inserting a death for '" + mcUUID + "' ban");
+			e.printStackTrace();
+		}
+	}
+	
+	public static DeathBan getDeathBan(String mcUUID) {
+		try {
+			return queryDeathBan("SELECT mc_id, time FROM deathban WHERE mc_id='" + mcUUID + "'");
+		} catch (SQLException e) {
+			DiscordWhitelister.getPluginLogger().severe("An SQL Exception occured while getting a death ban for '" + mcUUID + "'");
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	public static void clearDeathBan(String mcUUID) {
+		try {
+			execute("DELETE FROM deathban WHERE mc_id='" + mcUUID + "'");
+		} catch (SQLException e) {
+			DiscordWhitelister.getPluginLogger().severe("An SQL Exception occured while clearing a death ban for '" + mcUUID + "'");
 			e.printStackTrace();
 		}
 	}

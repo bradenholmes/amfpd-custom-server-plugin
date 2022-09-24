@@ -9,7 +9,6 @@ import org.bukkit.event.server.ServerCommandEvent;
 
 import uk.co.angrybee.joe.sql.MySqlClient;
 import uk.co.angrybee.joe.sql.Person;
-import uk.co.angrybee.joe.DiscordClient;
 import uk.co.angrybee.joe.DiscordWhitelister;
 import uk.co.angrybee.joe.Utils;
 import uk.co.angrybee.joe.Utils.WhitelistEventType;

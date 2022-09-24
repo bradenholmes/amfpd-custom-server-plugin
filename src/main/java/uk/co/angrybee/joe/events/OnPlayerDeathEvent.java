@@ -1,23 +1,26 @@
 package uk.co.angrybee.joe.events;
 
-import java.io.IOException;
-
+import org.apache.commons.lang3.StringUtils;
 import org.bukkit.GameRule;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerLoginEvent;
+import org.bukkit.event.player.PlayerLoginEvent.Result;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import uk.co.angrybee.joe.DiscordWhitelister;
+import uk.co.angrybee.joe.sql.DeathBan;
+import uk.co.angrybee.joe.sql.MySqlClient;
 
 public class OnPlayerDeathEvent implements Listener
 {
     @EventHandler (ignoreCancelled = true, priority = EventPriority.HIGHEST)
-    public void onPlayerDeath(PlayerDeathEvent e) throws IOException {
+    public void onPlayerDeath(PlayerDeathEvent e) {
         Player player = e.getEntity();
         
         //World gameRule keepInventory must be set to TRUE for this system to function
@@ -34,13 +37,44 @@ public class OnPlayerDeathEvent implements Listener
         		return;
         	}
 
+
         	handleExperience(player);
         	handleInventory(player);
         	
+        	MySqlClient.logPlayerDeath(player.getUniqueId().toString());
+        	
         	if (DiscordWhitelister.mainConfig.getFileConfiguration().getBoolean("deathpunish-timeout-enabled")) {
-        		player.kickPlayer("haha get got");
+        		String cause = StringUtils.substringAfter(e.getDeathMessage(), " ");
+        		cause = StringUtils.replaceAll(cause, "was", "were");
+        		
+        		StringBuilder sb = new StringBuilder();
+        		sb.append("§cYou ");
+        		sb.append(cause);
+        		sb.append("....");
+        		
+        		
+        		int timeoutTime = DiscordWhitelister.mainConfig.getFileConfiguration().getInt("deathpunish-timeout-duration");
+        		player.kickPlayer(sb.toString() + "\n\n§fand have been §etimed out §ffor §b" + timeoutTime + " §fseconds!");
+        		MySqlClient.insertDeathBan(player.getUniqueId().toString());
         	}
         }
+    }
+    
+    @EventHandler (priority = EventPriority.HIGHEST)
+    public void onPlayerLogin(PlayerLoginEvent e) {
+    	Player player = e.getPlayer();
+    	DeathBan deathBan = MySqlClient.getDeathBan(player.getUniqueId().toString());
+    	if (deathBan != null) {
+    		long timeSince = System.currentTimeMillis() - deathBan.getTime().getTime();
+    		long secondsSince = timeSince / 1000;
+    		int timeoutTime = DiscordWhitelister.mainConfig.getFileConfiguration().getInt("deathpunish-timeout-duration");
+    		if (secondsSince < timeoutTime) {
+    			e.disallow(Result.KICK_OTHER, "you are timed out for §b" + (timeoutTime - secondsSince) + "§f more seconds....");
+    		} else {
+    			MySqlClient.clearDeathBan(player.getUniqueId().toString());
+    		}
+    		
+    	}
     }
     
     /**
