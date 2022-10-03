@@ -10,10 +10,6 @@ import uk.co.angrybee.joe.DiscordWhitelister;
 public class Datasource
 {
 	
-	private static final String URL = "jdbc:mysql://mysql.apexhosting.gdn:3306/apexMC521038";
-	private static final String USER = "apexMC521038";
-	private static final String PASS = "k#QqYRV^bQdHnWoz@tkDxleE";
-	
 	private static Datasource instance;
 	
 	private HikariDataSource ds;
@@ -22,9 +18,18 @@ public class Datasource
 		ds = new HikariDataSource();
 		
 		ds.setMaximumPoolSize(10);
-		ds.setJdbcUrl(URL);
-		ds.setUsername(USER);
-		ds.setPassword(PASS);
+		
+		StringBuilder url = new StringBuilder();
+		url.append("jdbc:mysql://");
+		url.append(DiscordWhitelister.mainConfig.getFileConfiguration().getString("mysql-database-host"));
+		url.append(":");
+		url.append(DiscordWhitelister.mainConfig.getFileConfiguration().getString("mysql-database-port"));
+		url.append("/");
+		url.append(DiscordWhitelister.mainConfig.getFileConfiguration().getString("mysql-database-name"));
+		
+		ds.setJdbcUrl(url.toString());
+		ds.setUsername(DiscordWhitelister.mainConfig.getFileConfiguration().getString("mysql-database-user"));
+		ds.setPassword(DiscordWhitelister.mainConfig.getFileConfiguration().getString("mysql-database-pass"));
 		
 		try {
 			ds.getConnection();

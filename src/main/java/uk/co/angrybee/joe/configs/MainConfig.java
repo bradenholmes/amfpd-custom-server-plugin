@@ -47,19 +47,25 @@ public class MainConfig extends Config {
         CheckEntry("discord-bot-token",
                 default_token);
         
-        CheckEntry("guild-id", "1016931782194626601");
-        CheckEntry("member-role", "1017895030649794622");
-        CheckEntry("banned-role", "1019703075256147988");
+        CheckEntry("guild-id", "1010101010101010101");
+        CheckEntry("member-role", "1111111111111111111");
+        CheckEntry("banned-role", "0000000000000000000");
         // Allowed to add to the whitelist
-        CheckEntry("add-roles", Arrays.asList("1017895030649794622", "1017942234252968018"));
+        CheckEntry("add-roles", Arrays.asList("1111111111111111111", "2222222222222222222"));
         
         // Allowed to remove from the whitelist
-        CheckEntry("remove-roles", Arrays.asList("1017885949532835883", "1017883178381348945"));
+        CheckEntry("remove-roles", Arrays.asList("2222222222222222222", "3333333333333333333"));
 
-        CheckEntry("target-text-channels", Arrays.asList("1017923462301503549"));
+        CheckEntry("target-text-channels", Arrays.asList("4444444444444444444"));
 
         CheckEntry("remove-unnecessary-messages-from-whitelist-channel", false);
         CheckEntry("seconds-to-remove-message-from-whitelist-channel", 5);
+        
+        CheckEntry("mysql-database-host", "mysql.examplehost.com");
+        CheckEntry("mysql-database-port", "8080");
+        CheckEntry("mysql-database-user", "username");
+        CheckEntry("mysql-database-pass", "password");
+        CheckEntry("mysql-database-name", "dbName");
         
         CheckEntry("deathpunish-enabled", true);
         CheckEntry("deathpunish-punish-pvp", false);

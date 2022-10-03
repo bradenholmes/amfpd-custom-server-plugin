@@ -9,7 +9,9 @@ import uk.co.angrybee.joe.events.OnPardonEvent;
 import uk.co.angrybee.joe.events.OnPlayerDeathEvent;
 import uk.co.angrybee.joe.events.OnWhitelistEvent;
 import uk.co.angrybee.joe.sql.Datasource;
+import uk.co.angrybee.joe.sql.MySqlClient;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -40,7 +42,13 @@ public class DiscordWhitelister extends JavaPlugin {
         thisPlugin = this;
         pluginLogger = thisPlugin.getLogger();
         
+        ConfigSetup();
         Datasource.start();
+        try {
+			MySqlClient.initializeDatabase();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 
 
         int initSuccess = InitBot(true);
@@ -88,8 +96,6 @@ public class DiscordWhitelister extends JavaPlugin {
     }
 
     public static int InitBot(boolean firstInit) {
-
-        ConfigSetup();
 
         botToken = mainConfig.getFileConfiguration().getString("discord-bot-token");
         botEnabled = mainConfig.getFileConfiguration().getBoolean("bot-enabled");
