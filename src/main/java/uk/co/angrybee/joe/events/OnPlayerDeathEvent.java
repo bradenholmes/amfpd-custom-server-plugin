@@ -2,6 +2,7 @@ package uk.co.angrybee.joe.events;
 
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.GameRule;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -37,7 +38,6 @@ public class OnPlayerDeathEvent implements Listener
         		return;
         	}
 
-
         	handleExperience(player);
         	handleInventory(player);
         	
@@ -50,11 +50,11 @@ public class OnPlayerDeathEvent implements Listener
         		StringBuilder sb = new StringBuilder();
         		sb.append("§cYou ");
         		sb.append(cause);
-        		sb.append("....");
+        		sb.append("\n\n§fat " + makePositionString(player));
         		
         		
         		int timeoutTime = DiscordWhitelister.mainConfig.getFileConfiguration().getInt("deathpunish-timeout-duration");
-        		player.kickPlayer(sb.toString() + "\n\n§fand have been §etimed out §ffor §b" + timeoutTime + " §fseconds!");
+        		player.kickPlayer(sb.toString() + "\n\n§fand have been §etimed out §ffor §b" + timeoutTime + " §fseconds! \n\n ");
         		MySqlClient.insertDeathBan(player.getUniqueId().toString());
         	}
         }
@@ -164,5 +164,24 @@ public class OnPlayerDeathEvent implements Listener
     	dMeta.setDamage(maxDurability - newDurability);
     	itemStack.setItemMeta((ItemMeta) dMeta);
     	return itemStack;
+    }
+    
+    private static String makePositionString(Player p) {
+    	Location l = p.getLocation();
+    	StringBuilder sb = new StringBuilder();
+    	
+    	int x = (int)l.getX();
+    	int y = (int)l.getY();
+    	int z = (int)l.getZ();
+    	
+    	sb.append("§f(§6");
+    	sb.append(x);
+    	sb.append("§f, §6");
+    	sb.append(z);
+    	sb.append("§f) \ndepth = §6");
+    	sb.append(y);
+    	
+    	
+    	return sb.toString();
     }
 }
