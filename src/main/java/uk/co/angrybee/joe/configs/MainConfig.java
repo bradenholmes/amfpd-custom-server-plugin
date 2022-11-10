@@ -77,5 +77,7 @@ public class MainConfig extends Config {
         CheckEntry("deathpunish-inv-unstackable-destroy", false);
         CheckEntry("deathpunish-inv-equipment-durability-multiplyby", 0.9);
         CheckEntry("deathpunish-inv-drop", true);
+        
+        CheckEntry("infinitely-repair-tools", true);
     }
 }

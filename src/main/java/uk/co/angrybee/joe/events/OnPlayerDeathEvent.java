@@ -44,17 +44,7 @@ public class OnPlayerDeathEvent implements Listener
         	MySqlClient.logPlayerDeath(player.getUniqueId().toString());
         	
         	if (DiscordWhitelister.mainConfig.getFileConfiguration().getBoolean("deathpunish-timeout-enabled")) {
-        		String cause = StringUtils.substringAfter(e.getDeathMessage(), " ");
-        		cause = StringUtils.replaceAll(cause, "was", "were");
-        		
-        		StringBuilder sb = new StringBuilder();
-        		sb.append("§cYou ");
-        		sb.append(cause);
-        		sb.append("\n\n§fat " + makePositionString(player));
-        		
-        		
-        		int timeoutTime = DiscordWhitelister.mainConfig.getFileConfiguration().getInt("deathpunish-timeout-duration");
-        		player.kickPlayer(sb.toString() + "\n\n§fand have been §etimed out §ffor §b" + timeoutTime + " §fseconds! \n\n ");
+        		player.kickPlayer(makeDeathbanString(player, e.getDeathMessage()));
         		MySqlClient.insertDeathBan(player.getUniqueId().toString());
         	}
         }
@@ -164,6 +154,23 @@ public class OnPlayerDeathEvent implements Listener
     	dMeta.setDamage(maxDurability - newDurability);
     	itemStack.setItemMeta((ItemMeta) dMeta);
     	return itemStack;
+    }
+    
+    private static String makeDeathbanString(Player p, String deathMessage) {
+		String cause = StringUtils.substringAfter(deathMessage, " ");
+		cause = StringUtils.replaceAll(cause, "was", "were");
+		
+		StringBuilder sb = new StringBuilder();
+		sb.append("§cYou ");
+		sb.append(cause);
+		sb.append("\n\n§fat " + makePositionString(p));
+		
+		
+		int timeoutTime = DiscordWhitelister.mainConfig.getFileConfiguration().getInt("deathpunish-timeout-duration");
+		sb.append("\n\n§fand have been §etimed out §ffor §b");
+		sb.append(timeoutTime);
+		sb.append(" §fseconds! \n\n ");
+		return sb.toString();
     }
     
     private static String makePositionString(Player p) {

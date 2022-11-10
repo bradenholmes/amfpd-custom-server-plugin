@@ -1,8 +1,16 @@
 package uk.co.angrybee.joe;
 
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Recipe;
+import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.Nullable;
+
 import uk.co.angrybee.joe.commands.minecraft.CommandDiscord;
 import uk.co.angrybee.joe.configs.*;
+import uk.co.angrybee.joe.events.OnAnvilEvent;
 import uk.co.angrybee.joe.events.OnBanEvent;
 import uk.co.angrybee.joe.events.OnChatEvent;
 import uk.co.angrybee.joe.events.OnPardonEvent;
@@ -63,6 +71,11 @@ public class DiscordWhitelister extends JavaPlugin {
         }
 
         this.getCommand("discord").setExecutor(new CommandDiscord());
+        
+        ShapedRecipe recipe = new ShapedRecipe(new NamespacedKey(thisPlugin, "netherrack-to-netherbrick"), new ItemStack(Material.NETHER_BRICKS, 1)).shape("ccc", "ccc", "ccc").setIngredient('c', Material.NETHERRACK);
+        addRecipe(recipe);
+        
+        
     }
 
     @Override
@@ -125,6 +138,7 @@ public class DiscordWhitelister extends JavaPlugin {
             thisPlugin.getServer().getPluginManager().registerEvents(new OnWhitelistEvent(), thisPlugin);
             thisPlugin.getServer().getPluginManager().registerEvents(new OnChatEvent(), thisPlugin);
             thisPlugin.getServer().getPluginManager().registerEvents(new OnPlayerDeathEvent(), thisPlugin);
+            thisPlugin.getServer().getPluginManager().registerEvents(new OnAnvilEvent(), thisPlugin);
 
 
             int initSuccess = DiscordClient.InitializeClient(botToken);
@@ -148,5 +162,11 @@ public class DiscordWhitelister extends JavaPlugin {
         DiscordWhitelister.getPlugin().getServer().getScheduler().callSyncMethod(DiscordWhitelister.getPlugin(), ()
                 -> DiscordWhitelister.getPlugin().getServer().dispatchCommand(
                 DiscordWhitelister.getPlugin().getServer().getConsoleSender(), command));
+    }
+    
+    public static void addRecipe(@Nullable Recipe recipe) {
+        if(recipe != null) {
+        	DiscordWhitelister.getPlugin().getServer().addRecipe(recipe);
+        }
     }
 }
